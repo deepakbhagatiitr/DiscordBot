@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  bot:
+    build: .
+    volumes:
+      - .:/app
+    environment:
+      - DISCORD_TOKEN=YOUR_DISCORD_BOT_TOKEN
+    depends_on:
+      - mongo
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"

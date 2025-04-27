@@ -1,0 +1,9 @@
+{
+    "math": [
+      {"question": "What is 2 + 3?", "answer": "5"},
+      {"question": "Solve for x: 2x = 4", "answer": "2"}
+    ],
+    "python": [
+      {"question": "What does print('hello') do?", "answer": "Prints hello"}
+    ]
+  }
