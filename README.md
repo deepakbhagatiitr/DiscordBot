@@ -48,7 +48,7 @@ cd GenStudy
 ### 5. Run the Bot
 - Build and start the services:
   ```bash
-  docker-compose up --build
+  docker compose up --build
   ```
 - Look for `Bot is ready as StudyBot#1234` in the logs to confirm activation.
 
