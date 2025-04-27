@@ -59,9 +59,10 @@ cd GenStudy
 - **!progress**: View your learning stats.
 
 ## Screenshots
-- **Bot Interaction**: Example of `!math` command and response.
-- **Quiz Interface**: Example of `!quiz` and `!answer` sequence.
-- (Screenshots are stored in the `screenshots/` folder after capture.)
+![math](screenshots/math.png)
+![quiz](screenshots/quiz.png)
+![progress](screenshots/progress.png)
+
 
 ## Development
 - **Dependencies**: Listed in `requirements.txt` (discord.py, pymongo).
