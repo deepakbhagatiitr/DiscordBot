@@ -1,2 +1,4 @@
 discord.py
 pymongo
+python-dotenv
+requests
