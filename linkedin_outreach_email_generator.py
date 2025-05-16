@@ -51,7 +51,7 @@ def generate_email(to_email, role, message, skills, projects):
         "- Expresses enthusiasm for the specified role at the company.\n"
         "- Highlights 2-3 relevant skills from the provided skills list that align with the job requirements.\n"
         "- Describes two relevant projects from the provided projects list, including their short descriptions (e.g., technologies, purpose) to demonstrate experience.\n"
-        "- Incorporates specific details from the message (e.g., LLMs, vision models, AI pipelines) to show familiarity with the role.\n"
+        "- Incorporates specific details from the message to show familiarity with the role.\n"
         "- Uses the subject line specified in the message, if provided, or creates a concise, relevant one.\n"
         "- Excludes the sender’s name in the body, as it will be added in the signature.\n"
         "- Ensures the email is complete, professional, and not cut off.\n"
