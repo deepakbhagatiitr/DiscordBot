@@ -46,7 +46,7 @@ def generate_email(to_email, role, message, skills, projects):
     prompt = (
         "You are an AI assistant tasked with writing a professional cold email for LinkedIn outreach based on a job posting or message provided by the user. "
         "Carefully analyze the user’s message to extract the company name, role, required skills, preferred subject line, and any specific instructions (e.g., application process). "
-        "Craft a concise (under 150 words), polite, and personalized email that:\n"
+        "Craft a concise (under 200 words), polite, and personalized email that:\n"
         "- Starts directly with the email content, without any salutation (e.g., no 'Dear Hiring Manager').\n"
         "- Expresses enthusiasm for the specified role at the company.\n"
         "- Highlights 2-3 relevant skills from the provided skills list that align with the job requirements.\n"
