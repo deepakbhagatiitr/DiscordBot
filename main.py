@@ -59,7 +59,7 @@ def infer_role(message):
     return "unknown"
 
 try:
-    client = MongoClient(os.getenv('MONGODB_URI'))
+    client = MongoClient(os.getenv('MONG_URI'))
     client.server_info()
     db = client['studybot']
     users = db['users']
@@ -475,8 +475,7 @@ async def cancel(ctx):
     await ctx.send("Email sending cancelled.")
 
 def run_fastapi():
-    port = int(os.getenv("PORT", 8080))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    uvicorn.run(app, host="0.0.0.0", port=8080)
 
 if __name__ == "__main__":
     fastapi_thread = threading.Thread(target=run_fastapi, daemon=True)
