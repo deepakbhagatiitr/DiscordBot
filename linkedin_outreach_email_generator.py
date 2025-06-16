@@ -61,7 +61,7 @@ def generate_email(to_email, role, message, skills, projects):
         f"- User Message: {message}\n"
         f"- Relevant Skills: {skills}\n"
         f"- Relevant Projects: {projects}\n"
-        f"- Personal Details: {PERSONAL_DETAILS}\n"
+        f"- name: Deepak Bhagat\n"
         "Return the output in this format:\n"
         "Subject: {subject}\n{body}"
     )
@@ -87,7 +87,7 @@ def generate_email(to_email, role, message, skills, projects):
         print(f"Gemini API response: {generated_text}")
         # Append personal details to the email body
         subject = generated_text.split('\n')[0].replace("Subject: ", "")
-        body = '\n'.join(generated_text.split('\n')[1:])
+        body = '\n'.join(generated_text.split('\n')[1:]) + PERSONAL_DETAILS
         return f"Subject: {subject}\n{body}"
     except Exception as e:
         raise Exception(f"Gemini API error: {str(e)}")
