@@ -22,7 +22,7 @@ def send_emailCustom(to_email, subject, body, resume_path, from_email=None):
     # Attach resume
     if not os.path.exists(resume_path):
         raise FileNotFoundError(f"Resume file not found: {resume_path}")
-    
+
     with open(resume_path, 'rb') as attachment:
         part = MIMEBase('application', 'octet-stream')
         part.set_payload(attachment.read())

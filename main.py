@@ -4,11 +4,13 @@ from pymongo import MongoClient
 from dotenv import load_dotenv
 import os
 import re
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email import encoders
 import asyncio
 import pymongo.errors
-from fastapi import FastAPI
-import uvicorn
-import threading
 from emailsend import send_emailCustom
 from linkedin_outreach_email_generator import generate_email
 
@@ -21,12 +23,6 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 
 # Global dictionary to track pending emails
 pending_emails = {}
-
-app = FastAPI()
-
-@app.get("/")
-async def root():
-    return {"status": "healthy"}
 
 def get_resume_path(role):
     if "software" in role.lower() and "machine learning" not in role.lower():
@@ -51,7 +47,6 @@ def infer_role(message):
     software_score = sum(2 if keyword in ["software", "developer", "backend", "rust", "engineer"] else 1 for keyword in software_keywords if keyword in message_lower)
     data_science_score = sum(2 if keyword in ["machine learning", "data science", "llm"] else 1 for keyword in data_science_keywords if keyword in message_lower)
     
-    # Role classification logic
     if data_science_score > software_score and any(keyword in message_lower for keyword in ["machine learning", "data science", "llm", "nlp", "computer vision", "pytorch", "tensorflow"]):
         return "machine learning"
     elif software_score >= data_science_score:
@@ -59,7 +54,7 @@ def infer_role(message):
     return "unknown"
 
 try:
-    client = MongoClient(os.getenv('MONG_URI'))
+    client = MongoClient(os.getenv('MONGODB_URI'))  # Fixed: Changed 'MONG_URI' to 'MONGODB_URI'
     client.server_info()
     db = client['studybot']
     users = db['users']
@@ -67,7 +62,6 @@ except Exception as e:
     print(f"Failed to connect to MongoDB: {str(e)}")
     raise SystemExit("Exiting due to MongoDB connection failure.")
 
-# Cleanup pending emails
 async def cleanup_pending_emails():
     while True:
         current_time = asyncio.get_event_loop().time()
@@ -86,7 +80,7 @@ async def on_ready():
     try:
         client.server_info()
         print("MongoDB connection successful")
-    except Exception as e: 
+    except Exception as e:
         print(f"MongoDB connection failed: {e}")
     bot.loop.create_task(cleanup_pending_emails())
 
@@ -96,7 +90,6 @@ async def on_message(message):
         return
     user_id = str(message.author.id)
     
-    # Skip state processing for commands
     if message.content.startswith('!'):
         command_name = message.content.split()[0][1:].lower()
         if command_name not in [cmd.name for cmd in bot.commands]:
@@ -149,7 +142,6 @@ async def on_message(message):
         role = infer_role(body)
         print(f"Inferred role: {role} for message: {body[:100]}...")
 
-        # Set skills and projects based on role
         software_keywords = [
             "software", "developer", "engineer", "programmer", "backend", "frontend", "fullstack",
             "java", "python", "c++", "rust", "go", "node", "react", "spring", "django", "flask",
@@ -163,23 +155,38 @@ async def on_message(message):
         skills = ""
         projects = ""
         if any(keyword in role.lower() for keyword in software_keywords) and "machine learning" not in role.lower():
-            skills = "Rust, Python, Node.js, React, Docker, Kubernetes, AWS, SQL, Async Programming"
+            skills = "Python, Node.js, React, Django, Flutter, Docker, WebSockets, MongoDB, SQL, AWS"
             projects = (
-                "1. Real-Time Data Processing System: Built a low-latency backend with Rust and Tokio for high-throughput data streams\n"
-                "2. Enquiry-Based Learning App for IIT JEE Mathematics: Full-stack app with React, Node.js, MongoDB for IIT JEE preparation, mentored by Prof. Vishal Vaibhav, IIT Delhi\n"
-                "3. IPR Website for IIT Roorkee: Built with Next.js, Node.js, MongoDB, integrated email (Nodemailer) and file uploads (Multer)"
+                "1. E-Summit Website | E-Cell, IIT Roorkee \n"
+                "   • Developed and maintained the E-Summit website for IIT Roorkee, ensuring a seamless and engaging user experience.\n"
+                "   • Implemented responsive design, dynamic content, and smooth animations to enhance interactivity and visual appeal.\n"
+                "   • Integrated event registrations, schedules, and interactive features in collaboration with the E-Cell team.\n\n"
+
+                "2. Discord Bot for Cold Emailing \n"
+                "   • Automated cold email generation and delivery based on LinkedIn job posts using SMTP and resume attachment.\n"
+                "   • Used intelligent role inference via keyword scoring for tailored email content and resume selection.\n"
+                "   • Integrated MongoDB to track and persist email activity with robust error handling.\n\n"
+
+                "3. Enquiry-Based Learning App for IIT JEE Mathematics | Region Infinity Pvt. Ltd. \n"
+                "   • Mentored by Prof. Vishal Vaibhav (IIT Delhi) in building a full-stack educational app with React, Node.js, and MongoDB.\n"
+                "   • Developed frontend, backend, and a comprehensive admin panel for content and user management."
             )
+
         elif any(keyword in role.lower() for keyword in data_science_keywords):
-            skills = "PyTorch, TensorFlow, Scikit-learn, Pandas, NLP, LLaMA, RAG"
+            skills = "PyTorch, TensorFlow, Scikit-learn, Pandas, NLP, LLaMA, RAG, Rasa, Flask"
             projects = (
-                "1. RAG Model with Interactive UI: Combined retrieval and generation for real-time fact-based Q&A with a seamless UI\n"
-                "2. Skin Disease Prediction with Chatbot: Deep learning model for image-based skin disease classification, integrated with a LLaMA-based chatbot"
-            )
-        else:
-            skills = "Python, Software Development"
-            projects = (
-                "1. NutriBot – AI-Powered Nutrition Chatbot: Built with Rasa, Flask, Docker for personalized diet plans using Nutritionix API\n"
-                "2. Enquiry-Based Learning App for IIT JEE Mathematics: Full-stack app with React, Node.js, MongoDB for IIT JEE preparation"
+                "1. Skin Disease Prediction with Chatbot | Syntax Error, SDSLabs \n"
+                "   • Built a deep learning model for image-based skin disease prediction.\n"
+                "   • Integrated the model into a web interface with a LLaMA-powered AI chatbot for disease-related assistance.\n\n"
+
+                "2. RAG-Based Chatbot with UI | Absolute Dimension Pvt. Ltd. \n"
+                "   • Built a Retrieval-Augmented Generation (RAG) system combining IR and LLM for fact-based QA.\n"
+                "   • Designed a UI for intuitive, real-time query interactions using external knowledge.\n\n"
+
+                "3. Discord Bot for Cold Emailing \n"
+                "   • Automated cold email generation and delivery based on LinkedIn job posts using SMTP and resume attachment.\n"
+                "   • Used intelligent role inference via keyword scoring for tailored email content and resume selection.\n"
+                "   • Integrated MongoDB to track and persist email activity with robust error handling."
             )
 
         try:
@@ -265,23 +272,38 @@ async def on_message(message):
         skills = ""
         projects = ""
         if any(keyword in role.lower() for keyword in software_keywords) and "machine learning" not in role.lower():
-            skills = "Rust, Python, Node.js, React, Docker, Kubernetes, AWS, SQL, Async Programming"
+            skills = "Python, Node.js, React, Django, Flutter, Docker, WebSockets, MongoDB, SQL, AWS"
             projects = (
-                "1. Real-Time Data Processing System: Built a low-latency backend with Rust and Tokio for high-throughput data streams\n"
-                "2. Enquiry-Based Learning App for IIT JEE Mathematics: Full-stack app with React, Node.js, MongoDB for IIT JEE preparation, mentored by Prof. Vishal Vaibhav, IIT Delhi\n"
-                "3. IPR Website for IIT Roorkee: Built with Next.js, Node.js, MongoDB, integrated email (Nodemailer) and file uploads (Multer)"
+                "1. E-Summit Website | E-Cell, IIT Roorkee \n"
+                "   • Developed and maintained the E-Summit website for IIT Roorkee, ensuring a seamless and engaging user experience.\n"
+                "   • Implemented responsive design, dynamic content, and smooth animations to enhance interactivity and visual appeal.\n"
+                "   • Integrated event registrations, schedules, and interactive features in collaboration with the E-Cell team.\n\n"
+
+                "2. Discord Bot for Cold Emailing \n"
+                "   • Automated cold email generation and delivery based on LinkedIn job posts using SMTP and resume attachment.\n"
+                "   • Used intelligent role inference via keyword scoring for tailored email content and resume selection.\n"
+                "   • Integrated MongoDB to track and persist email activity with robust error handling.\n\n"
+
+                "3. Enquiry-Based Learning App for IIT JEE Mathematics | Region Infinity Pvt. Ltd. \n"
+                "   • Mentored by Prof. Vishal Vaibhav (IIT Delhi) in building a full-stack educational app with React, Node.js, and MongoDB.\n"
+                "   • Developed frontend, backend, and a comprehensive admin panel for content and user management."
             )
+
         elif any(keyword in role.lower() for keyword in data_science_keywords):
-            skills = "PyTorch, TensorFlow, Scikit-learn, Pandas, NLP, LLaMA, RAG"
+            skills = "PyTorch, TensorFlow, Scikit-learn, Pandas, NLP, LLaMA, RAG, Rasa, Flask"
             projects = (
-                "1. RAG Model with Interactive UI: Combined retrieval and generation for real-time fact-based Q&A with a seamless UI\n"
-                "2. Skin Disease Prediction with Chatbot: Deep learning model for image-based skin disease classification, integrated with a LLaMA-based chatbot"
-            )
-        else:
-            skills = "Python, Software Development"
-            projects = (
-                "1. NutriBot – AI-Powered Nutrition Chatbot: Built with Rasa, Flask, Docker for personalized diet plans using Nutritionix API\n"
-                "2. Enquiry-Based Learning App for IIT JEE Mathematics: Full-stack app with React, Node.js, MongoDB for IIT JEE preparation"
+                "1. Skin Disease Prediction with Chatbot | Syntax Error, SDSLabs \n"
+                "   • Built a deep learning model for image-based skin disease prediction.\n"
+                "   • Integrated the model into a web interface with a LLaMA-powered AI chatbot for disease-related assistance.\n\n"
+
+                "2. RAG-Based Chatbot with UI | Absolute Dimension Pvt. Ltd. \n"
+                "   • Built a Retrieval-Augmented Generation (RAG) system combining IR and LLM for fact-based QA.\n"
+                "   • Designed a UI for intuitive, real-time query interactions using external knowledge.\n\n"
+
+                "3. Discord Bot for Cold Emailing \n"
+                "   • Automated cold email generation and delivery based on LinkedIn job posts using SMTP and resume attachment.\n"
+                "   • Used intelligent role inference via keyword scoring for tailored email content and resume selection.\n"
+                "   • Integrated MongoDB to track and persist email activity with robust error handling."
             )
 
         try:
@@ -474,13 +496,7 @@ async def cancel(ctx):
     del pending_emails[user_id]
     await ctx.send("Email sending cancelled.")
 
-def run_fastapi():
-    uvicorn.run(app, host="0.0.0.0", port=8080)
-
 if __name__ == "__main__":
-    fastapi_thread = threading.Thread(target=run_fastapi, daemon=True)
-    fastapi_thread.start()
-    # Run Discord bot
     token = os.getenv('DISCORD_TOKENNew')
     if token:
         token = token.strip()
