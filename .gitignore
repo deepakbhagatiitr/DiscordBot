@@ -4,4 +4,4 @@ __pycache__/
 .venv
 deploy.sh
 discordbot.tar.gz
-/resumes
+/resumes/

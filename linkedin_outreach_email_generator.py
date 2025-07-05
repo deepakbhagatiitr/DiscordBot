@@ -44,27 +44,31 @@ def generate_email(to_email, role, message, skills, projects):
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key={API_KEY}"
     
     prompt = (
-        "You are an AI assistant tasked with writing a professional cold email for LinkedIn outreach based on a job posting or message provided by the user. "
-        "Carefully analyze the user’s message to extract the company name, role, required skills, preferred subject line, and any specific instructions (e.g., application process). "
-        "Craft a concise (under 200 words), polite, and personalized email that:\n"
-        "- Starts directly with the email content, without any salutation (e.g., no 'Dear Hiring Manager').\n"
-        "- Expresses enthusiasm for the specified role at the company.\n"
-        "- Highlights 2-3 relevant skills from the provided skills list that align with the job requirements.\n"
-        "- Describes two relevant projects from the provided projects list, including their short descriptions (e.g., technologies, purpose) to demonstrate experience.\n"
-        "- Incorporates specific details from the message to show familiarity with the role.\n"
-        "- Uses the subject line specified in the message, if provided, or creates a concise, relevant one.\n"
-        "- Excludes the sender’s name in the body, as it will be added in the signature.\n"
-        "- Ensures the email is complete, professional, and not cut off.\n"
-        "Details:\n"
-        f"- Recipient Email: {to_email}\n"
-        f"- Role: {role}\n"
-        f"- User Message: {message}\n"
-        f"- Relevant Skills: {skills}\n"
-        f"- Relevant Projects: {projects}\n"
-        f"- name: Deepak Bhagat\n"
-        "Return the output in this format:\n"
-        "Subject: {subject}\n{body}"
-    )
+    "You are an AI assistant tasked with writing a professional cold email for LinkedIn outreach based on a job posting or message provided by the user. "
+    "Carefully analyze the user’s message to extract the company name, role, required skills, preferred subject line, and any specific instructions (e.g., application process). "
+    "Craft a concise (under 200 words), polite, and personalized email that:\n"
+    "- Starts directly with the content, beginning with the user’s self-introduction: 'I am Deepak Bhagat, a pre-final year undergraduate student at IIT Roorkee.'\n"
+    "- Expresses enthusiasm for the specified role at the company.\n"
+    "- Highlights 2-3 relevant skills from the provided skills list that align with the job requirements.\n"
+    "- Describes two relevant projects from the provided projects list, including their short descriptions (e.g., technologies, purpose) to demonstrate experience.\n"
+    "- Incorporates specific details from the message to show familiarity with the role.\n"
+    "- Uses the subject line specified in the message, if provided.\n"
+    "- If no subject line is given, generate a concise, relevant, and professional subject line based **only** on the role and company, avoiding personal or unrelated details (such as the sender’s college).\n"
+    "- Ends with the line: 'I'd appreciate the opportunity for a short call or interview.'\n"
+    "- Excludes the sender’s name entirely after the introduction—do not include it in the closing or signature.\n"
+    "- Ensures the email is complete, professional, and not cut off.\n"
+    "Details:\n"
+    f"- Recipient Email: {to_email}\n"
+    f"- Role: {role}\n"
+    f"- User Message: {message}\n"
+    f"- Relevant Skills: {skills}\n"
+    f"- Relevant Projects: {projects}\n"
+    "Return the output in this format:\n"
+    "Subject: {subject}\n{body}"
+)
+
+
+
     
     try:
         response = requests.post(
